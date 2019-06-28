@@ -2,7 +2,7 @@
 
 ![screenshot](screenshot.png)
 
-Meshport is a mod which allows easy exporting of scenes from Minetest to a `.obj` file, complete with materials and textures. These models can be imported directly into Blender or another 3D program for rendering and animation.
+Meshport is a mod which allows easy exporting of scenes from Minetest to `.obj` files, complete with materials and textures. These models can be imported directly into Blender or another 3D program for rendering and animation.
 
 This mod is still in the "alpha" phase; as such, many types of nodes are not yet able to be exported. See below for more details.
 
