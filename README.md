@@ -8,7 +8,7 @@ This mod is still in the "alpha" phase; as such, many types of nodes are not yet
 
 ## Usage
 
-Use `/mesh1` and `/mesh2` to set the corners of the area you want exported, then use `/meshport` to export the mesh. The saved `.obj` and `.mtl` files will be located in the `meshport` folder of the world directory, within a subfolder.
+Use `/mesh1` and `/mesh2` to set the corners of the area you want exported, then use `/meshport [filename]` to export the mesh (filename is optional). The saved `.obj` and `.mtl` files will be located in the `meshport` folder of the world directory, within a subfolder.
 
 ### Importing into Blender
 
