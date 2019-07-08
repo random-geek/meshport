@@ -14,23 +14,9 @@ Use `/mesh1` and `/mesh2` to set the corners of the area you want exported, then
 
 Once the model is exported, you should be able to import the `.obj` file with default settings. Make sure "Image Search" in the import settings is selected to ensure the textures are imported as well. Texture modifiers are ignored, so some materials will likely have to be fixed by hand.
 
-#### Fixing interpolation
+#### Fixing materials
 
-If you intend to render the scene, you will want to set the interpolation mode of all the image textures to "Closest" in order to keep the pixelated look. This can either be done manually or by running this script in Blender's text editor:
-
-```python
-import bpy
-
-for mat in bpy.data.materials:
-    try:
-        nodes = mat.node_tree.nodes
-
-        for node in nodes:
-            if node.type == "TEX_IMAGE":
-                node.interpolation = "Closest"
-    except:
-        continue
-```
+Blender's packaged material assigned to OBJ textures are not effective or easy to use. By default, textures will also appear blurry and lack alpha. The `materials.py` script is included in the mod to simplify the materials, change interpolation, and add transparency. Open the script in Blender's text editor and run the script with the mesh selected.
 
 #### Fixing vertex normals
 
