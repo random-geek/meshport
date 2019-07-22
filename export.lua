@@ -132,7 +132,7 @@ function meshport.create_node(idx, area, content, param2, playerName)
 	return faces
 end
 
-function meshport.create_mesh(playerName, p1, p2)
+function meshport.create_mesh(playerName, p1, p2, filename)
 	meshport.print(playerName, "info", "Generating mesh...")
 	p1, p2 = vector.sort(p1, p2)
 	local vm = minetest.get_voxel_manip()
@@ -163,13 +163,21 @@ function meshport.create_mesh(playerName, p1, p2)
 		end
 	end
 
+	filename = filename or os.date("%Y-%m-%d_%H-%M-%S")
+
 	-- Create path for exported mesh.
 	local path = string.format("%s%smeshport%s%s_%s",
-		minetest.get_worldpath(), DIR_DELIM, DIR_DELIM, playerName, os.date("%Y-%m-%d_%H-%M-%S"))
+		minetest.get_worldpath(), DIR_DELIM, DIR_DELIM, playerName, filename)
+
+	if file_exists(path) then
+		meshport.print(playerName, "error", "File already exists.")
+		return
+	end
+
 	minetest.mkdir(path)
 
 	mesh:write_obj(path)
 	mesh:write_mtl(path, playerName)
 
-	meshport.print(playerName, "info", "Finished.")
+	meshport.print(playerName, "info", "Finished. Saved to " .. path)
 end

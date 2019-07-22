@@ -53,8 +53,8 @@ for i = 1, 2 do
 end
 
 minetest.register_chatcommand("meshport", {
-	params = "",
-	description = "Save a mesh of the selected area.",
+	params = "[filename]",
+	description = "Save a mesh of the selected area (filename optional).",
 	privs = {meshport = true},
 
 	func = function(name, param)
@@ -63,6 +63,13 @@ minetest.register_chatcommand("meshport", {
 			return
 		end
 
-		meshport.create_mesh(name, meshport.p1[name], meshport.p2[name])
+		if param:find("[^%w-_]") then
+			meshport.print(name, "error", "Invalid name supplied. Please use valid characters ([A-Z][a-z][0-9][-_]).")
+			return
+		elseif param == "" then
+			param = nil
+		end
+
+		meshport.create_mesh(name, meshport.p1[name], meshport.p2[name], param)
 	end,
 })
