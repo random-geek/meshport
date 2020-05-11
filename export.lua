@@ -169,10 +169,13 @@ function meshport.create_mesh(playerName, p1, p2, filename)
 	local path = string.format("%s%smeshport%s%s_%s",
 		minetest.get_worldpath(), DIR_DELIM, DIR_DELIM, playerName, filename)
 
-	if file_exists(path) then
+	local exists = io.open(path, "r")
+	if exists then
 		meshport.print(playerName, "error", "File already exists.")
+		exists:close()
 		return
 	end
+	exists:close()
 
 	minetest.mkdir(path)
 
