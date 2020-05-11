@@ -57,19 +57,29 @@ minetest.register_chatcommand("meshport", {
 	description = "Save a mesh of the selected area (filename optional).",
 	privs = {meshport = true},
 
-	func = function(name, param)
+	func = function(name, filename)
 		if not meshport.p1[name] or not meshport.p2[name] then
 			meshport.print(name, "error", "No area selected. Use /mesh1 and /mesh2 to select an area.")
 			return
 		end
 
-		if param:find("[^%w-_]") then
+		if filename:find("[^%w-_]") then
 			meshport.print(name, "error", "Invalid name supplied. Please use valid characters ([A-Z][a-z][0-9][-_]).")
 			return
-		elseif param == "" then
-			param = nil
+		elseif filename == "" then
+			filename = os.date("%Y-%m-%d_%H-%M-%S")
 		end
 
-		meshport.create_mesh(name, meshport.p1[name], meshport.p2[name], param)
+		local mpPath = minetest.get_worldpath() .. DIR_DELIM .. "meshport"
+		local folderName = name .. "_" .. filename
+
+		if table.indexof(minetest.get_dir_list(mpPath, true), folderName) > 0 then
+			meshport.print(name, "error",
+				string.format("Folder %q already exists. Try using a different name.", folderName))
+			return
+		end
+
+		local path = mpPath .. DIR_DELIM .. folderName
+		meshport.create_mesh(name, meshport.p1[name], meshport.p2[name], path)
 	end,
 })
