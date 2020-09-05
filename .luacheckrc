@@ -9,7 +9,3 @@ read_globals = {
     "minetest", "DIR_DELIM",
     "vector", "VoxelArea",
 }
-
-ignore = {
-    "vertList",
-}
