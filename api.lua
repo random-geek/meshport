@@ -77,7 +77,7 @@ function meshport.Mesh:new()
 end
 
 function meshport.Mesh:insert_face(face)
-	local indices = { -- luacheck: ignore
+	local indices = {
 		verts = {},
 		vert_norms = {},
 		tex_coords = {},
@@ -109,6 +109,16 @@ function meshport.Mesh:insert_face(face)
 
 	-- Add faces to mesh.
 	local vertStrs = {}
+	local vertList = {}
+
+	for i = 1, #indices.verts do
+		vertList = table.insert(vertStrs, table.concat({
+				indices.verts[i],
+				-- If there is a vertex normal but not a texture coordinate, insert a blank string here.
+				indices.tex_coords[i] or (indices.vert_norms[i] and ""),
+				indices.vert_norms[i],
+			}, "/"))
+	end
 
 	self.faces[face.texture] = self.faces[face.texture] or {}
 	table.insert(self.faces[face.texture], string.format("f %s\n", table.concat(vertStrs, " ")))
