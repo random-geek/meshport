@@ -98,7 +98,7 @@ function meshport.Boxes:to_faces(nodeTiles, pos, facedir)
 			{{x = b[4], y = b[2]}, {x = b[4], y = b[5]}, {x = b[1], y = b[5]}, {x = b[1], y = b[2]}}, -- Z-
 		}
 
-		local tileIdx, vertNorm
+		local vertNorm
 
 		for i = 1, 6 do
 			-- Fix offset texture coordinates.
