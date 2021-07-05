@@ -1,4 +1,24 @@
-meshport.side_box_names = {
+--[[
+	Copyright (C) 2021 random-geek (https://github.com/random-geek)
+
+	This file is part of Meshport.
+
+	Meshport is free software: you can redistribute it and/or modify it under
+	the terms of the GNU Lesser General Public License as published by the Free
+	Software Foundation, either version 3 of the License, or (at your option)
+	any later version.
+
+	Meshport is distributed in the hope that it will be useful, but WITHOUT ANY
+	WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+	FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for
+	more details.
+
+	You should have received a copy of the GNU Lesser General Public License
+	along with Meshport. If not, see <https://www.gnu.org/licenses/>.
+]]
+
+
+local SIDE_BOX_NAMES = {
 	"top", -- Y+
 	"bottom", -- Y-
 	"right", -- X+
@@ -7,7 +27,8 @@ meshport.side_box_names = {
 	"front", -- Z-
 }
 
-function meshport.sort_box(box)
+
+local function sort_box(box)
 	return {
 		math.min(box[1], box[4]),
 		math.min(box[2], box[5]),
@@ -18,15 +39,41 @@ function meshport.sort_box(box)
 	}
 end
 
+
+local function node_connects_to(nodeName, connectsTo)
+	-- If `connectsTo` is a string or nil, turn it into a table for iteration.
+	if type(connectsTo) ~= "table" then
+		connectsTo = {connectsTo}
+	end
+
+	for _, connectName in ipairs(connectsTo) do
+		if connectName == nodeName
+				or string.sub(connectName, 1, 6) == "group:"
+				and minetest.get_item_group(nodeName, string.sub(connectName, 7)) ~= 0 then
+			return true
+		end
+	end
+
+	return false
+end
+
+
+-- A list of node boxes, in the format used by Minetest:
+-- {a.x, a.y, a.z, b.x, b.y, b.z}
+-- Individual boxes inside the `boxes` array are not mutated.
 meshport.Boxes = {}
 
 function meshport.Boxes:new(boxes)
 	local o = {}
 
-	if type(boxes) ~= "table" or type(boxes[1]) == "number" then
-		o.boxes = {boxes}
+	if type(boxes) == "table" and type(boxes[1]) == "table" then
+		-- Copy boxes individually to avoid mutating the argument.
+		o.boxes = {}
+		for i, box in ipairs(boxes) do
+			o.boxes[i] = box
+		end
 	else
-		o.boxes = boxes
+		o.boxes = {boxes}
 	end
 
 	setmetatable(o, self)
@@ -34,9 +81,13 @@ function meshport.Boxes:new(boxes)
 	return o
 end
 
+function meshport.Boxes:insert_box(box)
+	table.insert(self.boxes, box)
+end
+
 function meshport.Boxes:insert_all(boxes)
 	for _, box in ipairs(boxes.boxes) do
-		table.insert(self.boxes, table.copy(box))
+		table.insert(self.boxes, box)
 	end
 end
 
@@ -63,61 +114,65 @@ function meshport.Boxes:rotate_by_facedir(facedir)
 end
 
 function meshport.Boxes:get_leveled(level)
-	local newBoxes = meshport.Boxes:new(table.copy(self.boxes))
+	local newBoxes = meshport.Boxes:new()
 
-	for i, box in ipairs(newBoxes.boxes) do
-		box = meshport.sort_box(box)
-		box[5] = level / 64 - 0.5
-		newBoxes.boxes[i] = box
+	for i, box in ipairs(self.boxes) do
+		local newBox = sort_box(box)
+		newBox[5] = level / 64 - 0.5
+		newBoxes.boxes[i] = newBox
 	end
 
 	return newBoxes
 end
 
-function meshport.Boxes:to_faces(nodeTiles, pos, facedir)
+function meshport.Boxes:to_faces(nodeDef, pos, facedir, tileIdx, useSpecial)
+	local tiles = useSpecial and nodeDef.special_tiles or nodeDef.tiles
+	local vec = vector.new
+
 	local faces = meshport.Faces:new()
 
-	for _, b in ipairs(self.boxes) do
-		b = meshport.sort_box(b)
+	for _, box in ipairs(self.boxes) do
+		local b = sort_box(box)
 
 		local sideFaces = {
-			{{x = b[4], y = b[5], z = b[3]}, {x = b[4], y = b[5], z = b[6]}, {x = b[1], y = b[5], z = b[6]}, {x = b[1], y = b[5], z = b[3]}}, -- Y+
-			{{x = b[4], y = b[2], z = b[6]}, {x = b[4], y = b[2], z = b[3]}, {x = b[1], y = b[2], z = b[3]}, {x = b[1], y = b[2], z = b[6]}}, -- Y-
-			{{x = b[4], y = b[2], z = b[6]}, {x = b[4], y = b[5], z = b[6]}, {x = b[4], y = b[5], z = b[3]}, {x = b[4], y = b[2], z = b[3]}}, -- X+
-			{{x = b[1], y = b[2], z = b[3]}, {x = b[1], y = b[5], z = b[3]}, {x = b[1], y = b[5], z = b[6]}, {x = b[1], y = b[2], z = b[6]}}, -- X-
-			{{x = b[1], y = b[2], z = b[6]}, {x = b[1], y = b[5], z = b[6]}, {x = b[4], y = b[5], z = b[6]}, {x = b[4], y = b[2], z = b[6]}}, -- Z+
-			{{x = b[4], y = b[2], z = b[3]}, {x = b[4], y = b[5], z = b[3]}, {x = b[1], y = b[5], z = b[3]}, {x = b[1], y = b[2], z = b[3]}}, -- Z-
+			{vec(b[1], b[5], b[3]), vec(b[4], b[5], b[3]), vec(b[4], b[5], b[6]), vec(b[1], b[5], b[6])}, -- Y+
+			{vec(b[1], b[2], b[6]), vec(b[4], b[2], b[6]), vec(b[4], b[2], b[3]), vec(b[1], b[2], b[3])}, -- Y-
+			{vec(b[4], b[2], b[3]), vec(b[4], b[2], b[6]), vec(b[4], b[5], b[6]), vec(b[4], b[5], b[3])}, -- X+
+			{vec(b[1], b[2], b[6]), vec(b[1], b[2], b[3]), vec(b[1], b[5], b[3]), vec(b[1], b[5], b[6])}, -- X-
+			{vec(b[4], b[2], b[6]), vec(b[1], b[2], b[6]), vec(b[1], b[5], b[6]), vec(b[4], b[5], b[6])}, -- Z+
+			{vec(b[1], b[2], b[3]), vec(b[4], b[2], b[3]), vec(b[4], b[5], b[3]), vec(b[1], b[5], b[3])}, -- Z-
 		}
+
+		local t = {}
+		for i = 1, 6 do
+			t[i] = b[i] + 0.5 -- Texture coordinates range from 0 to 1
+		end
 
 		local sideTexCoords = {
-			{{x = b[4], y = b[3]}, {x = b[4], y = b[6]}, {x = b[1], y = b[6]}, {x = b[1], y = b[3]}}, -- Y+
-			{{x = b[4], y =-b[6]}, {x = b[4], y =-b[3]}, {x = b[1], y =-b[3]}, {x = b[1], y =-b[6]}}, -- Y-
-			{{x = b[6], y = b[2]}, {x = b[6], y = b[5]}, {x = b[3], y = b[5]}, {x = b[3], y = b[2]}}, -- X+
-			{{x =-b[3], y = b[2]}, {x =-b[3], y = b[5]}, {x =-b[6], y = b[5]}, {x =-b[6], y = b[2]}}, -- X-
-			{{x =-b[1], y = b[2]}, {x =-b[1], y = b[5]}, {x =-b[4], y = b[5]}, {x =-b[4], y = b[2]}}, -- Z+
-			{{x = b[4], y = b[2]}, {x = b[4], y = b[5]}, {x = b[1], y = b[5]}, {x = b[1], y = b[2]}}, -- Z-
+			{{x =  t[1], y =  t[3]}, {x =  t[4], y =  t[3]}, {x =  t[4], y =  t[6]}, {x =  t[1], y =  t[6]}}, -- Y+
+			{{x =  t[1], y =1-t[6]}, {x =  t[4], y =1-t[6]}, {x =  t[4], y =1-t[3]}, {x =  t[1], y =1-t[3]}}, -- Y-
+			{{x =  t[3], y =  t[2]}, {x =  t[6], y =  t[2]}, {x =  t[6], y =  t[5]}, {x =  t[3], y =  t[5]}}, -- X+
+			{{x =1-t[6], y =  t[2]}, {x =1-t[3], y =  t[2]}, {x =1-t[3], y =  t[5]}, {x =1-t[6], y =  t[5]}}, -- X-
+			{{x =1-t[4], y =  t[2]}, {x =1-t[1], y =  t[2]}, {x =1-t[1], y =  t[5]}, {x =1-t[4], y =  t[5]}}, -- Z+
+			{{x =  t[1], y =  t[2]}, {x =  t[4], y =  t[2]}, {x =  t[4], y =  t[5]}, {x =  t[1], y =  t[5]}}, -- Z-
 		}
 
-		local vertNorm
-
 		for i = 1, 6 do
-			-- Fix offset texture coordinates.
-			for v = 1, 4 do
-				sideTexCoords[i][v] = {x = sideTexCoords[i][v].x + 0.5, y = sideTexCoords[i][v].y + 0.5}
-			end
-
-			vertNorm = meshport.neighbor_dirs[i]
+			local norm = meshport.NEIGHBOR_DIRS[i]
 
 			faces:insert_face(meshport.prepare_cuboid_face({
 				verts = sideFaces[i],
 				tex_coords = sideTexCoords[i],
-				vert_norms = {vertNorm, vertNorm, vertNorm, vertNorm},
-			}, nodeTiles, pos, facedir, i))
+				vert_norms = {norm, norm, norm, norm},
+				tile_idx = tileIdx,
+				use_special_tiles = useSpecial,
+			}, tiles, pos, facedir, i))
 		end
 	end
 
 	return faces
 end
+
 
 function meshport.prepare_nodebox(nodebox)
 	local prepNodebox = {}
@@ -132,7 +187,7 @@ function meshport.prepare_nodebox(nodebox)
 		prepNodebox.connected = {}
 		prepNodebox.disconnected = {}
 
-		for i, name in ipairs(meshport.side_box_names) do
+		for i, name in ipairs(SIDE_BOX_NAMES) do
 			prepNodebox.connected[i] = meshport.Boxes:new(nodebox["connect_" .. name])
 			prepNodebox.disconnected[i] = meshport.Boxes:new(nodebox["disconnected_" .. name])
 		end
@@ -145,20 +200,21 @@ function meshport.prepare_nodebox(nodebox)
 		prepNodebox.wall_side = meshport.Boxes:new(nodebox.wall_side)
 
 		-- Rotate the boxes so they are in the correct orientation after rotation by facedir.
-		prepNodebox.wall_top:transform(function(v) return {x = -v.x, y = -v.y, z = v.z} end)
-		prepNodebox.wall_side:transform(function(v) return {x = -v.z, y = v.x, z = v.y} end)
+		prepNodebox.wall_top:transform(function(v) return vector.new(-v.x, -v.y, v.z) end)
+		prepNodebox.wall_side:transform(function(v) return vector.new(-v.z, v.x, v.y) end)
 	end
 
 	return prepNodebox
 end
 
-function meshport.collect_boxes(prepNodebox, nodeDef, facedir, param2, neighbors)
+
+function meshport.collect_boxes(prepNodebox, nodeDef, param2, facedir, neighbors)
 	local boxes = meshport.Boxes:new()
 
 	if prepNodebox.fixed then
 		if prepNodebox.type == "leveled" then
-			boxes:insert_all(prepNodebox.fixed:get_leveled(
-					nodeDef.paramtype2 == "leveled" and param2 or nodeDef.leveled or 0))
+			local level = nodeDef.paramtype2 == "leveled" and param2 or nodeDef.leveled or 0
+			boxes:insert_all(prepNodebox.fixed:get_leveled(level))
 		else
 			boxes:insert_all(prepNodebox.fixed)
 		end
@@ -170,7 +226,7 @@ function meshport.collect_boxes(prepNodebox, nodeDef, facedir, param2, neighbors
 		for i = 1, 6 do
 			neighborName = minetest.get_name_from_content_id(neighbors[i])
 
-			if meshport.node_connects_to(neighborName, nodeDef.connects_to) then
+			if node_connects_to(neighborName, nodeDef.connects_to) then
 				boxes:insert_all(prepNodebox.connected[i])
 			else
 				boxes:insert_all(prepNodebox.disconnected[i])

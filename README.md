@@ -5,52 +5,90 @@
 
 ![screenshot](screenshot.png)
 
-Meshport is a mod which allows easy exporting of scenes from Minetest to `.obj` files, complete with materials and textures. These models can be imported directly into Blender or another 3D program for rendering and animation.
+Meshport is a mod which allows easy exporting of scenes from Minetest to `.obj`
+files, complete with materials and textures. These models can be imported
+directly into Blender or another 3D program for rendering and animation.
 
-This mod is still in the "alpha" phase; as such, many types of nodes are not yet able to be exported. See below for more details.
+This mod is still in the beta phase; certain texturing features and node
+drawtypes are not yet supported.
 
 ## Usage
 
-Use `/mesh1` and `/mesh2` to set the corners of the area you want exported, then use `/meshport [filename]` to export the mesh (filename is optional). The saved `.obj` and `.mtl` files will be located in the `meshport` folder of the world directory, within a subfolder.
+Use `/mesh1` and `/mesh2` to set the corners of the area you want exported,
+then use `/meshport [filename]` to export the mesh (filename is optional).
+
+Folders containing exported meshes, including `.obj` and `.mtl` files, are
+saved in the `meshport` folder of the world directory.
 
 ### Importing into Blender
 
-Once the model is exported, you should be able to import the `.obj` file with default settings. Make sure "Image Search" in the import settings is selected to ensure the textures are imported as well. Texture modifiers are ignored, so some materials will likely have to be fixed by hand.
+Once the model is exported, you can import the `.obj` file into Blender with
+default settings. Make sure "Image Search" in the import settings is selected
+to ensure textures from the `.mtl` file are imported as well.
 
 #### Fixing materials
 
-Blender's packaged material assigned to OBJ textures are not effective or easy to use. By default, textures will also appear blurry and lack alpha. The `materials.py` script is included in the mod to simplify the materials, change interpolation, and add transparency. Open the script in Blender's text editor and run the script with the mesh selected.
+Upon importing the file, Blender assigns basic materials to the model which are
+inaccurate and not very usable. By default, these materials appear blurry and
+lack transparency. The `materials.py` script is included in the mod to fix
+these issues. Open the script in Blender's text editor and run the script with
+the mesh selected.
 
-#### Fixing vertex normals
+Meshport does not handle texture modifiers or node coloring, so some materials
+will probably still need to be fixed by hand after running the script.
 
-Some mesh nodes may not have any vertex normals, which can lead to lighing problems. To fix this, what I have found to work is to first select the all the problematic nodes, either manually or by selecting by material in edit mode; then, mark the selected edges as sharp, and then average the normals by face area.
+#### Other fixes
 
-Additional tip: Use an HDRI sky texture (such as one from [here](https://hdrihaven.com)) for awesome-looking renders. ;)
+Some mesh nodes may not have any vertex normals, which can lead to lighting
+problems. To fix this, what I have found to work is to select the all the
+problematic nodes (either manually or by selecting by material in edit mode),
+mark the selected edges as sharp, and average the normals by face area.
+
+Some animated textures may also appear incorrect. Meshport tries to scale
+texture coordinates of animated textures to fit within one frame, but some
+nodes (especially flowing liquids) can exceed this boundary. If this is an
+issue, switch to a non-animated texture and scale up the affected UV maps to
+match the new texture.
+
+Additional tip: Use an HDRI sky texture (such as one from [here][1]) for
+awesome-looking renders. ;)
+
+[1]: https://hdrihaven.com
 
 ## Supported features
 
-At the moment, only the following node drawtypes are supported:
+The following node drawtypes are currently supported:
 
-- Cubic drawtypes, including `normal`, `glasslike`, `allfaces`, and their variants (see below)
+- Cubic drawtypes, including `normal`, `allfaces`, `glasslike`, and their
+  variants (see below)
+- `glasslike_framed`
+- `liquid` and `flowingliquid`
 - `nodebox`
 - `mesh` (only `.obj` meshes are exported)
+- `plantlike` and `plantlike_rooted`
 
-Many special rendering features are not yet supported.
+Meshport also supports many of Minetest's relevant features, including:
 
-### A note on cubic nodes
+- Most `paramtype2`s (note that color is ignored for colored types)
+- `visual_scale`
+- World-aligned textures
+- Animated textures (only one frame is used)
 
-Due to the differences between Minetest's rendering engine and 3D programs such as Blender, it is not possible to exactly replicate how certain cubic nodes are rendered in Minetest. Instead, to avoid duplicate faces, a face priority system is used as follows:
+Some special rendering features are unsupported, including texture modifiers,
+overlay textures, and node coloring.
 
-| Priority level | Drawtypes                                          |
-|----------------|----------------------------------------------------|
-| 4              | `normal`                                           |
-| 3              | `glasslike`                                        |
-| 2              | `glasslike_framed` and `glasslike_framed_optional` |
-| 1              | `allfaces` and `allfaces_optional`                 |
-| 0              | All other nodes                                    |
+### Notes on cubic nodes
 
-In places where two nodes of different drawtypes touch, only the face of the node with the higher priority drawtype will be drawn. For `allfaces` type nodes (such as leaves), interior faces will be drawn only when facing X+, Y+, or Z+ in the Minetest coordinate space.
+Drawtypes `allfaces_optional` and `glasslike_framed_optional` are output the
+same as `allfaces` and `glasslike`, respectively.
+
+Due to the differences between Minetest's rendering engine and 3D programs such
+as Blender, it is impossible to exactly replicate how certain cubic nodes are
+rendered in Minetest. Instead, Meshport aims for a compromise between accuracy
+and simplicity of geometry. In certain cases where two cubic nodes are
+touching, one face may be offset slightly to avoid duplicate faces while still
+allowing both faces to be visible.
 
 ## License
 
-All code is licensed under the GNU LGPL v3.0.
+Meshport is licensed under the GNU LGPL v3.0.
