@@ -1,0 +1,23 @@
+# textdomain:meshport
+
+Warning: @1
+Error: @1
+Can save meshes with Meshport.
+Position @1 set to @2.
+Set position @1 for Meshport. Player's position is used if no other position is specified.
+Not a valid position.
+You must have the meshport privilege to use this tool.
+Meshport Area Selector@\nLeft-click to set 1st corner, right-click to set 2nd corner.
+Meshport Area Selector
+Clear the current Meshport area.
+Cleared the current area.
+Save a mesh of the selected area (filename optional).
+No area selected. Use the Meshport Area Selector or /mesh1 and /mesh2 to select an area.
+Invalid name supplied. Please use valid characters: [A-Z][a-z][0-9][-_]
+Folder "@1" already exists. Try using a different name.
+Mesh "@1" is not supported.
+Mesh "@1" could not be found.
+Generating mesh...
+Finished. Saved to @1
+Ignoring texture modifers in material "@1".
+Could not find texture "@1". Using a dummy material instead.

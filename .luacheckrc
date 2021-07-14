@@ -11,7 +11,6 @@ read_globals = {
     table = {fields = {"copy", "getn", "indexof"}},
 
     "minetest",
-    "DIR_DELIM",
     "PseudoRandom",
     "vector",
     "VoxelArea",

@@ -21,6 +21,9 @@
 -- Much of the mesh generation code in this file is derived from Minetest's
 -- MapblockMeshGenerator class. See minetest/src/client/content_mapblock.cpp.
 
+local S = meshport.S
+local vec = vector.new -- Makes defining tables of vertices a little less painful.
+
 --[[
 	THE CUBIC NODE PRIORITY SYSTEM
 
@@ -57,8 +60,6 @@ local CUBIC_FACE_PRIORITY = {
 	normal = 4,
 	plantlike_rooted = 4, -- base of plantlike_rooted is equivalent to `normal`.
 }
-
-local vec = vector.new -- Makes defining tables of vertices a little less painful.
 
 local CUBIC_SIDE_FACES = {
 	{vec(-0.5,  0.5, -0.5), vec( 0.5,  0.5, -0.5), vec( 0.5,  0.5,  0.5), vec(-0.5,  0.5,  0.5)}, -- Y+
@@ -573,9 +574,9 @@ local function create_mesh_node(nodeDef, param2, playerName)
 
 		if not meshport.obj_paths[meshName] then
 			if string.lower(string.sub(meshName, -4)) ~= ".obj" then
-				meshport.log(playerName, "warning", string.format("Mesh %q is not supported.", meshName))
+				meshport.log(playerName, "warning", S("Mesh \"@1\" is not supported.", meshName))
 			else
-				meshport.log(playerName, "warning", string.format("Mesh %q could not be found.", meshName))
+				meshport.log(playerName, "warning", S("Mesh \"@1\" could not be found.", meshName))
 			end
 
 			-- Cache a blank faces object so the player isn't warned again.
@@ -760,7 +761,7 @@ end
 
 
 function meshport.create_mesh(playerName, p1, p2, path)
-	meshport.log(playerName, "info", "Generating mesh...")
+	meshport.log(playerName, "info", S("Generating mesh..."))
 	initialize_resources()
 
 	p1, p2 = vector.sort(p1, p2)
@@ -795,5 +796,5 @@ function meshport.create_mesh(playerName, p1, p2, path)
 	mesh:write_mtl(path, playerName)
 
 	cleanup_resources()
-	meshport.log(playerName, "info", "Finished. Saved to " .. path)
+	meshport.log(playerName, "info", S("Finished. Saved to @1", path))
 end

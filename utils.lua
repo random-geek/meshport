@@ -17,6 +17,8 @@
 	along with Meshport. If not, see <https://www.gnu.org/licenses/>.
 ]]
 
+local S = meshport.S
+
 meshport.NEIGHBOR_DIRS = {
 	-- face neighbors
 	vector.new( 0, 1, 0), -- 1
@@ -111,9 +113,9 @@ function meshport.log(name, level, s)
 	if level == "info" then
 		message = minetest.colorize("#00EF00", s)
 	elseif level == "warning" then
-		message = minetest.colorize("#EFEF00", "Warning: " .. s)
+		message = minetest.colorize("#EFEF00", S("Warning: @1", s))
 	elseif level == "error" then
-		message = minetest.colorize("#EF0000", "Error: " .. s)
+		message = minetest.colorize("#EF0000", S("Error: @1", s))
 	end
 
 	minetest.chat_send_player(name, "[meshport] " .. message)
@@ -378,13 +380,13 @@ function meshport.get_asset_paths(assetFolderName, extension)
 
 	-- Iterate through each enabled mod.
 	for _, modName in ipairs(minetest.get_modnames()) do
-		modAssetPath = minetest.get_modpath(modName) .. DIR_DELIM .. assetFolderName
+		modAssetPath = minetest.get_modpath(modName) .. "/" .. assetFolderName
 
 		-- Iterate through all the files in the requested folder of the mod.
 		for _, fileName in ipairs(minetest.get_dir_list(modAssetPath, false)) do
 			-- Add files to the table. If an extension is specified, only add files with that extension.
 			if not extension or string.lower(string.sub(fileName, -string.len(extension))) == extension then
-				assets[fileName] = modAssetPath .. DIR_DELIM .. fileName
+				assets[fileName] = modAssetPath .. "/" .. fileName
 			end
 		end
 	end

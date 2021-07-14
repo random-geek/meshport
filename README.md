@@ -1,6 +1,7 @@
 # Meshport (Minetest Mesh Exporter)
 
 [![Build status](https://github.com/random-geek/meshport/workflows/build/badge.svg)](https://github.com/random-geek/meshport/actions)
+[![ContentDB](https://content.minetest.net/packages/random_geek/meshport/shields/downloads/)](https://content.minetest.net/packages/random_geek/meshport/)
 [![License](https://img.shields.io/badge/license-LGPLv3.0%2B-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
 
 ![screenshot](screenshot.png)
@@ -14,8 +15,25 @@ drawtypes are not yet supported.
 
 ## Usage
 
-Use `/mesh1` and `/mesh2` to set the corners of the area you want exported,
-then use `/meshport [filename]` to export the mesh (filename is optional).
+Only players with the `meshport` privilege are allowed to select areas and
+export meshes. This privilege is granted to singleplayer/admin players by
+default.
+
+To export a mesh, first select the area you want to export. There are two ways
+to do this:
+
+- Use the **Meshport Area Selector** tool. Left- or right-click on a node or
+  object to select either corner of the area. Hold sneak while clicking a node
+  to select the node in front of the face you clicked on.
+- Or, use the `/mesh1` and `/mesh2` commands to set either corner. You can
+  specify a position (e.g. `/mesh1 -24 0 24`) or leave the argument blank to
+  use your current position (e.g. `/mesh1`).
+
+After selecting an area, use `/meshport [filename]` to export the mesh
+(filename is optional).
+
+The `/meshrst` command can be used to clear the current
+selection.
 
 Folders containing exported meshes, including `.obj` and `.mtl` files, are
 saved in the `meshport` folder of the world directory.
@@ -91,4 +109,7 @@ allowing both faces to be visible.
 
 ## License
 
-Meshport is licensed under the GNU LGPL v3.0.
+Textures are licensed under [CC BY 4.0][2]. Everything else (including source code)
+is licensed under the GNU LGPL v3.0.
+
+[2]: https://creativecommons.org/licenses/by/4.0/

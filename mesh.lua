@@ -17,6 +17,8 @@
 	along with Meshport. If not, see <https://www.gnu.org/licenses/>.
 ]]
 
+local S = meshport.S
+
 --[[
 	A buffer of faces.
 
@@ -279,7 +281,7 @@ end
 function meshport.Mesh:write_obj(path)
 	local objFile = io.open(path .. "/model.obj", "w")
 
-	objFile:write("# Created using meshport (https://github.com/random-geek/meshport).\n")
+	objFile:write("# Created using Meshport (https://github.com/random-geek/meshport).\n")
 	objFile:write("mtllib materials.mtl\n")
 
 	-- Write vertices.
@@ -312,7 +314,7 @@ end
 function meshport.Mesh:write_mtl(path, playerName)
 	local matFile = io.open(path .. "/materials.mtl", "w")
 
-	matFile:write("# Created using meshport (https://github.com/random-geek/meshport).\n")
+	matFile:write("# Created using Meshport (https://github.com/random-geek/meshport).\n")
 
 	-- Write material information.
 	for mat, _ in pairs(self.faces) do
@@ -323,13 +325,13 @@ function meshport.Mesh:write_mtl(path, playerName)
 
 		if meshport.texture_paths[texName] then
 			if texName ~= mat then
-				meshport.log(playerName, "warning", string.format("Ignoring texture modifers in material %q.", mat))
+				meshport.log(playerName, "warning", S("Ignoring texture modifers in material \"@1\".", mat))
 			end
 
 			matFile:write(string.format("map_Kd %s\n", meshport.texture_paths[texName]))
 		else
 			meshport.log(playerName, "warning",
-					string.format("Could not find texture %q. Using a dummy material instead.", texName))
+					S("Could not find texture \"@1\". Using a dummy material instead.", texName))
 			matFile:write(string.format("Kd %f %f %f\n", math.random(), math.random(), math.random()))
 		end
 	end
