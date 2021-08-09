@@ -601,7 +601,12 @@ local function create_mesh_node(nodeDef, param2, playerName)
 end
 
 
+-- Plant rotation is slightly different from normal wallmounted rotation.
+local PLANTLIKE_WALLMOUNTED_TO_FACEDIR = {[0] = 20, 0, 16, 14, 11, 5}
+
+
 local function create_plantlike_node(pos, param2, nodeDef)
+	local isRooted = nodeDef.drawtype == "plantlike_rooted"
 	local style = 0
 	local height = 1.0
 	local scale = 0.5 * nodeDef.visual_scale
@@ -610,15 +615,22 @@ local function create_plantlike_node(pos, param2, nodeDef)
 	local randomOffsetY = false
 	local faceNum = 0
 
+	local faces = meshport.Faces:new()
+
+	if isRooted then
+		-- Place plant above the center node.
+		offset.y = 1
+	end
+
 	if nodeDef.paramtype2 == "meshoptions" then
 		style = param2 % 8
 
-		if param2 % 16 >= 8 then -- param2 % 8
+		if param2 % 16 >= 8 then -- param2 & 8
 			-- TODO: Use MT's seed generators
 			local seed = (pos.x % 0xFF) * 0x100 + (pos.z % 0xFF) + (pos.y % 0xFF) * 0x10000
 			local rng = PseudoRandom(seed)
-			offset.x = (rng:next() % 16 / 16) * 0.29 - 0.145
-			offset.z = (rng:next() % 16 / 16) * 0.29 - 0.145
+			offset.x = ((rng:next() % 16) / 16) * 0.29 - 0.145
+			offset.z = ((rng:next() % 16) / 16) * 0.29 - 0.145
 		end
 
 		if param2 % 32 >= 16 then -- param2 & 16
@@ -630,38 +642,44 @@ local function create_plantlike_node(pos, param2, nodeDef)
 		end
 	elseif nodeDef.paramtype2 == "leveled" then
 		height = param2 / 16
+		if height == 0 then
+			-- No height, no plant!
+			-- But seriously, zero-area faces cause problems with Blender.
+			return faces
+		end
 	end
 
 	local function create_plantlike_quad(faceRotation, topOffset, bottomOffset)
-		local faces = meshport.Faces:new()
+		-- Use Faces, even though it's just one face.
+		local face = meshport.Faces:new()
 		local plantHeight = 2.0 * scale * height
 		local norm = vector.normalize(vector.new(0, bottomOffset - topOffset, plantHeight))
 
-		faces:insert_face({
+		face:insert_face({
 			verts = {
 				vec(-scale, -0.5 + plantHeight, topOffset),
 				vec( scale, -0.5 + plantHeight, topOffset),
 				vec( scale, -0.5, bottomOffset),
 				vec(-scale, -0.5, bottomOffset),
 			},
-			tex_coords = {{x = 0, y = height}, {x = 1, y = height}, {x = 1, y = 0}, {x = 0, y = 0}},
+			tex_coords = {{x = 0, y = 1}, {x = 1, y = 1}, {x = 1, y = 1 - height}, {x = 0, y = 1 - height}},
 			vert_norms = {norm, norm, norm, norm},
 			tile_idx = 0,
-			use_special_tiles = nodeDef.drawtype == "plantlike_rooted"
+			use_special_tiles = isRooted,
 		})
+		face:rotate_xz_degrees(faceRotation + rotation)
 
+		local faceOffset = vector.new(offset)
 		if randomOffsetY then
 			local seed = faceNum + (pos.x % 0xFF) * 0x10000 + (pos.z % 0xFF) * 0x100 + (pos.y % 0xFF) * 0x1000000
 			local yRng = PseudoRandom(seed)
-			faces:translate(vector.new(0, (yRng:next() % 16) / 16.0 * -0.125, 0))
+			faceOffset.y = faceOffset.y - ((yRng:next() % 16) / 16 * 0.125)
 			faceNum = faceNum + 1
 		end
 
-		faces:rotate_xz_degrees(faceRotation + rotation)
-		return faces
+		face:translate(faceOffset)
+		return face
 	end
-
-	local faces = meshport.Faces:new()
 
 	if style == 0 then
 		faces:insert_all(create_plantlike_quad(46, 0, 0))
@@ -685,7 +703,12 @@ local function create_plantlike_node(pos, param2, nodeDef)
 		faces:insert_all(create_plantlike_quad(271, -0.5, 0))
 	end
 
-	faces:translate(offset)
+	-- TODO: Support facedir if added.
+	if nodeDef.paramtype2 == "wallmounted" or nodeDef.paramtype2 == "colorwallmounted" then
+		local facedir = PLANTLIKE_WALLMOUNTED_TO_FACEDIR[param2 % 8] or 0
+		faces:rotate_by_facedir(facedir)
+	end
+
 	return faces
 end
 
@@ -715,8 +738,7 @@ local function create_node(idx, area, vContent, vParam2, playerName)
 
 		if nodeDrawtype == "plantlike_rooted" then
 			local plantPos = vector.add(pos, vector.new(0, 1, 0))
-			local plantFaces = create_plantlike_node(nodeDef, plantPos, vParam2[idx])
-			plantFaces:translate(vector.new(0, 1, 0))
+			local plantFaces = create_plantlike_node(plantPos, vParam2[idx], nodeDef)
 			faces:insert_all(plantFaces)
 		end
 	elseif CUBIC_FACE_PRIORITY[nodeDrawtype] then -- Any other cubic nodes (allfaces, glasslike)
