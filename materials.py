@@ -47,7 +47,10 @@ for mat in targetMats:
     # Create principled shader
     prin = nodes.new("ShaderNodeBsdfPrincipled")
     prin.location = 300, 0
-    prin.inputs["Specular"].default_value = 0
+    if int(bpy.app.version_string.split('.')[0]) >= 4:
+        prin.inputs["Specular IOR Level"].default_value = 0
+    else:
+        prin.inputs["Specular"].default_value = 0
 
     # Create output
     out = nodes.new("ShaderNodeOutputMaterial")
