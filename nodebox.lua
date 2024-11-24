@@ -49,7 +49,7 @@ local function node_connects_to(nodeName, connectsTo)
 	for _, connectName in ipairs(connectsTo) do
 		if connectName == nodeName
 				or string.sub(connectName, 1, 6) == "group:"
-				and minetest.get_item_group(nodeName, string.sub(connectName, 7)) ~= 0 then
+				and core.get_item_group(nodeName, string.sub(connectName, 7)) ~= 0 then
 			return true
 		end
 	end
@@ -58,7 +58,7 @@ local function node_connects_to(nodeName, connectsTo)
 end
 
 
--- A list of node boxes, in the format used by Minetest:
+-- A list of node boxes, in the format used by Luanti:
 -- {a.x, a.y, a.z, b.x, b.y, b.z}
 -- Individual boxes inside the `boxes` array are not mutated.
 meshport.Boxes = {}
@@ -224,7 +224,7 @@ function meshport.collect_boxes(prepNodebox, nodeDef, param2, facedir, neighbors
 		local neighborName
 
 		for i = 1, 6 do
-			neighborName = minetest.get_name_from_content_id(neighbors[i])
+			neighborName = core.get_name_from_content_id(neighbors[i])
 
 			if node_connects_to(neighborName, nodeDef.connects_to) then
 				boxes:insert_all(prepNodebox.connected[i])

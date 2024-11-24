@@ -1,6 +1,6 @@
 --[[
 	Copyright (C) 2021 random-geek (https://github.com/random-geek)
-	Minetest: Copyright (C) 2010-2021 celeron55, Perttu Ahola <celeron55@gmail.com>
+	Luanti (Minetest): Copyright (C) 2010-2021 celeron55, Perttu Ahola <celeron55@gmail.com>
 
 	This file is part of Meshport.
 
@@ -18,7 +18,7 @@
 	along with Meshport. If not, see <https://www.gnu.org/licenses/>.
 ]]
 
--- Much of the mesh generation code in this file is derived from Minetest's
+-- Much of the mesh generation code in this file is derived from Luanti's (Minetest's)
 -- MapblockMeshGenerator class. See minetest/src/client/content_mapblock.cpp.
 
 local S = meshport.S
@@ -84,9 +84,9 @@ local function create_cubic_node(pos, content, param2, nodeDef, drawtype, neighb
 	for i = 1, 6 do
 		local drawFace
 
-		if neighbors[i] == minetest.CONTENT_AIR then
+		if neighbors[i] == core.CONTENT_AIR then
 			drawFace = true
-		elseif neighbors[i] == minetest.CONTENT_IGNORE
+		elseif neighbors[i] == core.CONTENT_IGNORE
 				-- Don't draw faces between identical nodes
 				or neighbors[i] == content
 				-- Don't draw liquid faces bordering a corresponding flowing liquid
@@ -125,7 +125,7 @@ local function create_special_cubic_node(pos, content, nodeDef, drawtype, neighb
 		local drawFace
 		local inset = false
 
-		if allfacesScale ~= 1 or neighbors[i] == minetest.CONTENT_AIR or neighbors[i] == minetest.CONTENT_IGNORE then
+		if allfacesScale ~= 1 or neighbors[i] == core.CONTENT_AIR or neighbors[i] == core.CONTENT_IGNORE then
 			drawFace = true
 		elseif neighbors[i] == content then
 			drawFace = isAllfaces and i % 2 == 1
@@ -323,7 +323,7 @@ local function create_flowing_liquid_node(pos, nodeDef, area, vContent, vParam2)
 			}
 			local nData = neighbors[dz][dx]
 
-			if vContent[nIdx] ~= minetest.CONTENT_IGNORE then
+			if vContent[nIdx] ~= core.CONTENT_IGNORE then
 				if vContent[nIdx] == cSource then
 					nData.is_same_liquid = true
 					nData.level = 0.5
@@ -359,7 +359,7 @@ local function create_flowing_liquid_node(pos, nodeDef, area, vContent, vParam2)
 				elseif nData.content == cFlowing then
 					sum = sum + nData.level
 					count = count + 1
-				elseif nData.content == minetest.CONTENT_AIR then
+				elseif nData.content == core.CONTENT_AIR then
 					airCount = airCount + 1
 
 					if airCount >= 2 then
@@ -541,8 +541,8 @@ end
 
 
 local function create_nodebox_node(pos, content, param2, neighbors)
-	local nodeName = minetest.get_name_from_content_id(content)
-	local nodeDef = minetest.registered_nodes[nodeName]
+	local nodeName = core.get_name_from_content_id(content)
+	local nodeDef = core.registered_nodes[nodeName]
 
 	if not meshport.nodebox_cache[nodeName] then
 		meshport.nodebox_cache[nodeName] = meshport.prepare_nodebox(nodeDef.node_box)
@@ -714,9 +714,9 @@ end
 
 
 local function create_node(idx, area, vContent, vParam2, playerName)
-	if vContent[idx] == minetest.CONTENT_AIR
-			or vContent[idx] == minetest.CONTENT_IGNORE
-			or vContent[idx] == minetest.CONTENT_UNKNOWN then -- TODO: Export unknown nodes?
+	if vContent[idx] == core.CONTENT_AIR
+			or vContent[idx] == core.CONTENT_IGNORE
+			or vContent[idx] == core.CONTENT_UNKNOWN then -- TODO: Export unknown nodes?
 		return
 	end
 
@@ -787,7 +787,7 @@ function meshport.create_mesh(playerName, p1, p2, path)
 	initialize_resources()
 
 	p1, p2 = vector.sort(p1, p2)
-	local vm = minetest.get_voxel_manip()
+	local vm = core.get_voxel_manip()
 
 	-- Add one node of padding to area so we can read neighbor blocks.
 	local vp1, vp2 = vm:read_from_map(vector.subtract(p1, 1), vector.add(p2, 1))
@@ -813,7 +813,7 @@ function meshport.create_mesh(playerName, p1, p2, path)
 		end
 	end
 
-	minetest.mkdir(path)
+	core.mkdir(path)
 	mesh:write_obj(path)
 	mesh:write_mtl(path, playerName)
 

@@ -111,14 +111,14 @@ function meshport.log(name, level, s)
 	local message
 
 	if level == "info" then
-		message = minetest.colorize("#00EF00", s)
+		message = core.colorize("#00EF00", s)
 	elseif level == "warning" then
-		message = minetest.colorize("#EFEF00", S("Warning: @1", s))
+		message = core.colorize("#EFEF00", S("Warning: @1", s))
 	elseif level == "error" then
-		message = minetest.colorize("#EF0000", S("Error: @1", s))
+		message = core.colorize("#EF0000", S("Error: @1", s))
 	end
 
-	minetest.chat_send_player(name, "[meshport] " .. message)
+	core.chat_send_player(name, "[meshport] " .. message)
 end
 
 
@@ -268,14 +268,14 @@ end
 
 
 function meshport.get_content_id_or_nil(nodeName)
-	if minetest.registered_nodes[nodeName] then
-		return minetest.get_content_id(nodeName)
+	if core.registered_nodes[nodeName] then
+		return core.get_content_id(nodeName)
 	end
 end
 
 
 function meshport.get_def_from_id(contentId)
-	return minetest.registered_nodes[minetest.get_name_from_content_id(contentId)] or {}
+	return core.registered_nodes[core.get_name_from_content_id(contentId)] or {}
 end
 
 
@@ -379,11 +379,11 @@ function meshport.get_asset_paths(assetFolderName, extension)
 	local assets = {}
 
 	-- Iterate through each enabled mod.
-	for _, modName in ipairs(minetest.get_modnames()) do
-		modAssetPath = minetest.get_modpath(modName) .. "/" .. assetFolderName
+	for _, modName in ipairs(core.get_modnames()) do
+		modAssetPath = core.get_modpath(modName) .. "/" .. assetFolderName
 
 		-- Iterate through all the files in the requested folder of the mod.
-		for _, fileName in ipairs(minetest.get_dir_list(modAssetPath, false)) do
+		for _, fileName in ipairs(core.get_dir_list(modAssetPath, false)) do
 			-- Add files to the table. If an extension is specified, only add files with that extension.
 			if not extension or string.lower(string.sub(fileName, -string.len(extension))) == extension then
 				assets[fileName] = modAssetPath .. "/" .. fileName

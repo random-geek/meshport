@@ -1,12 +1,12 @@
-# Meshport (Minetest Mesh Exporter)
+# Meshport (Luanti Mesh Exporter)
 
 [![Build status](https://github.com/random-geek/meshport/workflows/build/badge.svg)](https://github.com/random-geek/meshport/actions)
-[![ContentDB](https://content.minetest.net/packages/random_geek/meshport/shields/downloads/)](https://content.minetest.net/packages/random_geek/meshport/)
+[![ContentDB](https://content.luanti.org/packages/random_geek/meshport/shields/downloads/)](https://content.luanti.org/packages/random_geek/meshport/)
 [![License](https://img.shields.io/badge/license-LGPLv3.0%2B-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
 
 ![screenshot](screenshot.png)
 
-Meshport is a mod which allows easy exporting of scenes from Minetest to `.obj`
+Meshport is a mod which allows easy exporting of scenes from Luanti (Minetest) to `.obj`
 files, complete with materials and textures. These models can be imported
 directly into Blender or another 3D program for rendering and animation.
 
@@ -85,7 +85,7 @@ The following node drawtypes are currently supported:
 - `mesh` (only `.obj` meshes are exported)
 - `plantlike` and `plantlike_rooted`
 
-Meshport also supports many of Minetest's relevant features, including:
+Meshport also supports many of Luanti's relevant features, including:
 
 - Most `paramtype2`s (note that color is ignored for colored types)
 - `visual_scale`
@@ -100,9 +100,9 @@ overlay textures, and node coloring.
 Drawtypes `allfaces_optional` and `glasslike_framed_optional` are output the
 same as `allfaces` and `glasslike`, respectively.
 
-Due to the differences between Minetest's rendering engine and 3D programs such
+Due to the differences between Luanti's rendering engine and 3D programs such
 as Blender, it is impossible to exactly replicate how certain cubic nodes are
-rendered in Minetest. Instead, Meshport aims for a compromise between accuracy
+rendered in Luanti. Instead, Meshport aims for a compromise between accuracy
 and simplicity of geometry. In certain cases where two cubic nodes are
 touching, one face may be offset slightly to avoid duplicate faces while still
 allowing both faces to be visible.
