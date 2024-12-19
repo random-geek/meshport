@@ -10,7 +10,7 @@ read_globals = {
     string = {fields = {"split", "trim"}},
     table = {fields = {"copy", "getn", "indexof"}},
 
-    "minetest",
+    "core",
     "PseudoRandom",
     "vector",
     "VoxelArea",

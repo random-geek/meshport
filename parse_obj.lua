@@ -25,7 +25,7 @@ local function parse_vector_element(elementType, elementStr)
 	if elementType == "v" or elementType == "vn" then
 		-- Note that there may be an optional weight value after z, which is ignored.
 		local xs, ys, zs = string.match(elementStr, "^([%d%.%-]+)%s+([%d%.%-]+)%s+([%d%.%-]+)")
-		-- The X axis of vectors is inverted to match the Minetest coordinate system.
+		-- The X axis of vectors is inverted to match the Luanti coordinate system.
 		local vec = vector.new(-tonumber(xs), tonumber(ys), tonumber(zs))
 
 		if elementType == "v" then
@@ -70,7 +70,7 @@ end
 
 
 local function handle_group(groups, elementStr)
-	-- Note: Minetest ignores usemtl; see `OBJ_LOADER_IGNORE_MATERIAL_FILES`.
+	-- Note: Luanti ignores usemtl; see `OBJ_LOADER_IGNORE_MATERIAL_FILES`.
 	-- The format allows multiple group names; get only the first one.
 	local groupName = string.match(elementStr, "^(%S+)")
 	if not groupName then

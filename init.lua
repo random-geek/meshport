@@ -19,10 +19,10 @@
 
 meshport = {
 	player_data = {},
-	S = minetest.get_translator("meshport"),
+	S = core.get_translator("meshport"),
 }
 
-modpath = minetest.get_modpath("meshport")
+modpath = core.get_modpath("meshport")
 dofile(modpath .. "/utils.lua")
 dofile(modpath .. "/mesh.lua")
 dofile(modpath .. "/parse_obj.lua")
@@ -32,9 +32,9 @@ dofile(modpath .. "/export.lua")
 local S = meshport.S
 local vec = vector.new
 
-minetest.register_privilege("meshport", S("Can save meshes with Meshport."))
+core.register_privilege("meshport", S("Can save meshes with Meshport."))
 
-minetest.register_on_leaveplayer(function(player, timed_out)
+core.register_on_leaveplayer(function(player, timed_out)
 	local name = player:get_player_name()
 	meshport.player_data[name] = nil
 end)
@@ -42,7 +42,7 @@ end)
 for n = 1, 2 do
 	local tex = "meshport_corner_" .. n .. ".png"
 
-	minetest.register_entity("meshport:corner_" .. n, {
+	core.register_entity("meshport:corner_" .. n, {
 		initial_properties = {
 			physical = false,
 			visual = "cube",
@@ -50,7 +50,7 @@ for n = 1, 2 do
 			selectionbox = {-0.52, -0.52, -0.52, 0.52, 0.52, 0.52},
 			textures = {tex, tex, tex, tex, tex, tex},
 			static_save = false,
-			glow = minetest.LIGHT_MAX,
+			glow = core.LIGHT_MAX,
 		},
 
 		on_punch = function(self, hitter)
@@ -59,7 +59,7 @@ for n = 1, 2 do
 	})
 end
 
-minetest.register_entity("meshport:border", {
+core.register_entity("meshport:border", {
 	initial_properties = {
 		physical = false,
 		visual = "upright_sprite",
@@ -68,7 +68,7 @@ minetest.register_entity("meshport:border", {
 			"meshport_border.png^[transformFX",
 		},
 		static_save = false,
-		glow = minetest.LIGHT_MAX,
+		glow = core.LIGHT_MAX,
 	},
 
 	on_punch = function(self, hitter)
@@ -137,7 +137,7 @@ local function mark_borders(playerData)
 	}
 
 	for i = 1, 6 do
-		local entity = minetest.add_entity(sideCenters[i], "meshport:border")
+		local entity = core.add_entity(sideCenters[i], "meshport:border")
 		entity:set_properties({
 			visual_size = sideSizes[i],
 			selectionbox = selectionBoxes[i],
@@ -164,7 +164,7 @@ local function set_position(playerName, n, pos)
 		data.corners[n]:remove()
 	end
 
-	data.corners[n] = minetest.add_entity(pos, "meshport:corner_" .. n)
+	data.corners[n] = core.add_entity(pos, "meshport:corner_" .. n)
 
 	for i = 1, 6 do
 		if data.borders[i] then
@@ -177,12 +177,12 @@ local function set_position(playerName, n, pos)
 		mark_borders(data)
 	end
 
-	meshport.log(playerName, "info", S("Position @1 set to @2.", n, minetest.pos_to_string(pos)))
+	meshport.log(playerName, "info", S("Position @1 set to @2.", n, core.pos_to_string(pos)))
 end
 
 
 for n = 1, 2 do
-	minetest.register_chatcommand("mesh" .. n, {
+	core.register_chatcommand("mesh" .. n, {
 		params = "[pos]",
 		description = S(
 			"Set position @1 for Meshport. Player's position is used if no other position is specified.", n),
@@ -192,9 +192,9 @@ for n = 1, 2 do
 			local pos
 
 			if param == "" then
-				pos = minetest.get_player_by_name(playerName):get_pos()
+				pos = core.get_player_by_name(playerName):get_pos()
 			else
-				pos = minetest.string_to_pos(param)
+				pos = core.string_to_pos(param)
 			end
 
 			if not pos then
@@ -216,7 +216,7 @@ local function on_wand_click(itemstack, player, pointedThing, n)
 
 	local playerName = player:get_player_name()
 
-	if not minetest.check_player_privs(playerName, "meshport") then
+	if not core.check_player_privs(playerName, "meshport") then
 		meshport.log(playerName, "error", S("You must have the meshport privilege to use this tool."))
 		return
 	end
@@ -243,7 +243,7 @@ local function on_wand_click(itemstack, player, pointedThing, n)
 end
 
 
-minetest.register_tool("meshport:wand", {
+core.register_tool("meshport:wand", {
 	description = S("Meshport Area Selector\nLeft-click to set 1st corner, right-click to set 2nd corner."),
 	short_description = S("Meshport Area Selector"),
 	inventory_image = "meshport_wand.png",
@@ -262,7 +262,7 @@ minetest.register_tool("meshport:wand", {
 	end,
 })
 
-minetest.register_chatcommand("meshrst", {
+core.register_chatcommand("meshrst", {
 	description = S("Clear the current Meshport area."),
 	privs = {meshport = true},
 
@@ -289,7 +289,7 @@ minetest.register_chatcommand("meshrst", {
 	end,
 })
 
-minetest.register_chatcommand("meshport", {
+core.register_chatcommand("meshport", {
 	params = "[filename]",
 	description = S("Save a mesh of the selected area (filename optional)."),
 	privs = {meshport = true},
@@ -311,10 +311,10 @@ minetest.register_chatcommand("meshport", {
 			filename = os.date("%Y-%m-%d_%H-%M-%S")
 		end
 
-		local mpPath = minetest.get_worldpath() .. "/" .. "meshport"
+		local mpPath = core.get_worldpath() .. "/" .. "meshport"
 		local folderName = playerName .. "_" .. filename
 
-		if table.indexof(minetest.get_dir_list(mpPath, true), folderName) > 0 then
+		if table.indexof(core.get_dir_list(mpPath, true), folderName) > 0 then
 			meshport.log(playerName, "error",
 				S("Folder \"@1\" already exists. Try using a different name.", folderName))
 			return
