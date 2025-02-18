@@ -1,0 +1,2 @@
+meshport.webhook_url (Webhook url to notify of an export) string 
+meshport.embed_textures (Embed textures or not) bool false

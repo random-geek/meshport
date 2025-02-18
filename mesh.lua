@@ -196,6 +196,36 @@ local function bimap_find_or_insert(forward, reverse, item)
 	return idx
 end
 
+function readAll(file)
+    local f = assert(io.open(file, "rb"))
+    local content = f:read("*all")
+    f:close()
+    return content
+end
+
+function GetFileExtension(path)
+	return path:match("^.+(%..+)$")
+end
+
+local function copyTextureToPath(texture, path, textureMap)
+
+	local textureContent = readAll(texture)
+	local textureHash = core.sha256(textureContent)
+
+	if textureMap[textureHash] then
+		return textureMap[textureHash], textureMap
+	else
+		local texturePath = "textures/" .. textureHash .. GetFileExtension(texture)
+		local textureFile = io.open(path .. "/" .. texturePath, "w")
+		textureFile:write(textureContent)
+		textureFile:close()
+
+		textureMap[textureHash] = texturePath
+
+		return texturePath, textureMap
+	end
+end
+
 
 -- Stores a mesh in a form which is easily convertible to an .OBJ file.
 meshport.Mesh = {}
@@ -313,8 +343,12 @@ end
 
 function meshport.Mesh:write_mtl(path, playerName)
 	local matFile = io.open(path .. "/materials.mtl", "w")
+	--  create texture folder
+	core.mkdir(path .. "/textures")
 
 	matFile:write("# Created using Meshport (https://github.com/random-geek/meshport).\n")
+
+	local textureMap = {}
 
 	-- Write material information.
 	for mat, _ in pairs(self.faces) do
@@ -328,7 +362,12 @@ function meshport.Mesh:write_mtl(path, playerName)
 				meshport.log(playerName, "warning", S("Ignoring texture modifers in material \"@1\".", mat))
 			end
 
-			matFile:write(string.format("map_Kd %s\n", meshport.texture_paths[texName]))
+			if meshport.config["embed_textures"] then
+				local texturePath, textureMap = copyTextureToPath(meshport.texture_paths[texName], path, textureMap)
+				matFile:write(string.format("map_Kd %s\n", texturePath))
+			else
+				matFile:write(string.format("map_Kd %s\n", meshport.texture_paths[texName]))
+			end
 		else
 			meshport.log(playerName, "warning",
 					S("Could not find texture \"@1\". Using a dummy material instead.", texName))
@@ -337,4 +376,30 @@ function meshport.Mesh:write_mtl(path, playerName)
 	end
 
 	matFile:close()
+end
+
+function meshport.Mesh:call_webhook(path, playerName)
+
+	local url = meshport.config.webhook_url
+
+	if url == '' or not meshport.http then
+		return
+	end
+	
+	local meshjson = {
+		meshfolder= path,
+		userName= playerName
+	}
+
+	meshport.http.fetch({
+		url = url,
+		extra_headers = { "Content-Type: application/json" },
+		method = "POST",
+		data = core.write_json(meshjson)
+	}, function(res)
+		if not res.succeeded then
+			meshport.log(playerName, "error", S("[meshport] webhook post failed with code \"@1\"", res.code))
+		end
+	end);
+
 end
