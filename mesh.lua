@@ -148,7 +148,8 @@ function meshport.Faces:apply_tiles(nodeDef)
 		end
 
 		local tile = meshport.get_tile(tiles, face.tile_idx)
-		face.texture = tile.name or tile
+		-- tile.image is deprecated but is still used sometimes
+		face.texture = tile.name or tile.image or tile
 
 		-- If an animated texture is used, scale texture coordinates so only the first image is used.
 		local animation = tile.animation
@@ -156,7 +157,7 @@ function meshport.Faces:apply_tiles(nodeDef)
 			local xScale, yScale = 1, 1
 
 			if animation.type == "vertical_frames" then
-				local texW, texH = meshport.get_texture_dimensions(tile.name)
+				local texW, texH = meshport.get_texture_dimensions(face.texture)
 				if texW and texH then
 					xScale = (animation.aspect_w or 16) / texW
 					yScale = (animation.aspect_h or 16) / texH

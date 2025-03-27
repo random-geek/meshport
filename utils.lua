@@ -374,22 +374,45 @@ function meshport.get_texture_dimensions(textureName)
 end
 
 
-function meshport.get_asset_paths(assetFolderName, extension)
-	local modAssetPath
-	local assets = {}
-
-	-- Iterate through each enabled mod.
-	for _, modName in ipairs(core.get_modnames()) do
-		modAssetPath = core.get_modpath(modName) .. "/" .. assetFolderName
-
-		-- Iterate through all the files in the requested folder of the mod.
-		for _, fileName in ipairs(core.get_dir_list(modAssetPath, false)) do
-			-- Add files to the table. If an extension is specified, only add files with that extension.
-			if not extension or string.lower(string.sub(fileName, -string.len(extension))) == extension then
-				assets[fileName] = modAssetPath .. "/" .. fileName
-			end
+local function add_asset_paths_from_folder(assetPaths, path, extension)
+	-- Iterate through all the files in the requested folder of the mod/game.
+	for _, fileName in ipairs(core.get_dir_list(path, false)) do
+		-- Add files to the table. If an extension is specified, only add files with that extension.
+		if not extension or string.lower(string.sub(fileName, -string.len(extension))) == extension then
+			assetPaths[fileName] = path .. "/" .. fileName
 		end
 	end
+end
 
-	return assets
+
+function meshport.get_texture_paths()
+	local texturePaths = {}
+
+	-- Iterate through each enabled mod.
+	local modTexturePath
+	for _, modName in ipairs(core.get_modnames()) do
+		modTexturePath = core.get_modpath(modName) .. "/textures"
+		add_asset_paths_from_folder(texturePaths, modTexturePath, nil)
+	end
+
+	-- Some games store textures in the root game folder instead of mod folders,
+	-- overriding mod textures. Find those textures.
+	local gameTexturePath = core.get_game_info().path .. "/textures"
+	add_asset_paths_from_folder(texturePaths, gameTexturePath, nil)
+
+	return texturePaths
+end
+
+
+function meshport.get_obj_paths()
+	local objPaths = {}
+
+	-- Iterate through each enabled mod.
+	local modObjPath
+	for _, modName in ipairs(core.get_modnames()) do
+		modObjPath = core.get_modpath(modName) .. "/models"
+		add_asset_paths_from_folder(objPaths, modObjPath, ".obj")
+	end
+
+	return objPaths
 end

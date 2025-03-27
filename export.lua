@@ -569,7 +569,7 @@ local function create_mesh_node(nodeDef, param2, playerName)
 	if not meshport.mesh_cache[meshName] then
 		-- Get the paths of all .obj meshes.
 		if not meshport.obj_paths then
-			meshport.obj_paths = meshport.get_asset_paths("models", ".obj")
+			meshport.obj_paths = meshport.get_obj_paths()
 		end
 
 		if not meshport.obj_paths[meshName] then
@@ -765,7 +765,7 @@ end
 
 
 local function initialize_resources()
-	meshport.texture_paths = meshport.get_asset_paths("textures")
+	meshport.texture_paths = meshport.get_texture_paths()
 	meshport.texture_dimension_cache = {}
 	-- meshport.obj_paths is only loaded if needed
 	meshport.nodebox_cache = {}
