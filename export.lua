@@ -24,6 +24,18 @@
 local S = meshport.S
 local vec = vector.new -- Makes defining tables of vertices a little less painful.
 
+local has_monitoring = minetest.get_modpath("monitoring")
+
+local metric_meshport_exported
+
+if has_monitoring then
+	metric_meshport_exported = monitoring.counter(
+		"meshport_mesh_exported",
+		"Number of exported mesh"
+	)
+end
+
+
 --[[
 	THE CUBIC NODE PRIORITY SYSTEM
 
@@ -782,7 +794,7 @@ local function cleanup_resources()
 end
 
 
-function meshport.create_mesh(playerName, p1, p2, path)
+function meshport.create_mesh(playerName, p1, p2, path, folderName)
 	meshport.log(playerName, "info", S("Generating mesh..."))
 	initialize_resources()
 
@@ -816,7 +828,11 @@ function meshport.create_mesh(playerName, p1, p2, path)
 	core.mkdir(path)
 	mesh:write_obj(path)
 	mesh:write_mtl(path, playerName)
+	mesh:call_webhook(folderName, playerName)
 
 	cleanup_resources()
 	meshport.log(playerName, "info", S("Finished. Saved to @1", path))
+	if has_monitoring then
+		metric_meshport_exported.inc(1)
+	end
 end

@@ -23,6 +23,7 @@ meshport = {
 }
 
 modpath = core.get_modpath("meshport")
+dofile(modpath .. "/settings.lua")
 dofile(modpath .. "/utils.lua")
 dofile(modpath .. "/mesh.lua")
 dofile(modpath .. "/parse_obj.lua")
@@ -31,6 +32,14 @@ dofile(modpath .. "/export.lua")
 
 local S = meshport.S
 local vec = vector.new
+
+local http = core.request_http_api and core.request_http_api()
+if core.get_modpath("qos") then
+	-- use qos-wrapped http
+	http = QoS(http, 2)
+end
+
+meshport.http = http
 
 core.register_privilege("meshport", S("Can save meshes with Meshport."))
 
@@ -321,6 +330,6 @@ core.register_chatcommand("meshport", {
 		end
 
 		local path = mpPath .. "/" .. folderName
-		meshport.create_mesh(playerName, playerData.pos[1], playerData.pos[2], path)
+		meshport.create_mesh(playerName, playerData.pos[1], playerData.pos[2], path, folderName)
 	end,
 })
